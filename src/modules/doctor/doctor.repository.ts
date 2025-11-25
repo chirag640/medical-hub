@@ -56,6 +56,10 @@ export class DoctorRepository extends BaseRepository<DoctorDocument> {
     return this.doctorModel.findOne({ licenseNumber }).lean().exec() as Promise<Doctor | null>;
   }
 
+  async findOne(criteria: any): Promise<Doctor | null> {
+    return this.doctorModel.findOne(criteria).lean().exec() as Promise<Doctor | null>;
+  }
+
   /**
    * Relationship Management Methods
    */

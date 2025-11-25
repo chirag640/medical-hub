@@ -9,8 +9,12 @@ import { PaginatedResponse, createPaginatedResponse } from '../../pagination.dto
 export class AppointmentService {
   constructor(private readonly appointmentRepository: AppointmentRepository) {}
 
-  async create(dto: CreateAppointmentDto): Promise<AppointmentOutputDto> {
-    const created = await this.appointmentRepository.create(dto);
+  async create(dto: CreateAppointmentDto, createdBy?: string): Promise<AppointmentOutputDto> {
+    const appointmentData: any = { ...dto };
+    if (createdBy) {
+      appointmentData.createdBy = createdBy;
+    }
+    const created = await this.appointmentRepository.create(appointmentData);
     return this.mapToOutput(created);
   }
 
@@ -37,17 +41,30 @@ export class AppointmentService {
     return this.mapToOutput(item);
   }
 
-  async update(id: string, dto: UpdateAppointmentDto): Promise<AppointmentOutputDto> {
-    const updated = await this.appointmentRepository.update(id, dto);
+  async update(
+    id: string,
+    dto: UpdateAppointmentDto,
+    lastModifiedBy?: string,
+  ): Promise<AppointmentOutputDto> {
+    const updateData: any = { ...dto };
+    if (lastModifiedBy) {
+      updateData.lastModifiedBy = lastModifiedBy;
+    }
+    const updated = await this.appointmentRepository.update(id, updateData);
     if (!updated) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
     return this.mapToOutput(updated);
   }
 
-  async remove(id: string): Promise<void> {
-    const deleted = await this.appointmentRepository.delete(id);
-    if (!deleted) {
+  async remove(id: string, deletedBy?: string): Promise<void> {
+    // Soft delete with audit trail
+    const updated = await this.appointmentRepository.update(id, {
+      isDeleted: true,
+      deletedAt: new Date(),
+      deletedBy,
+    });
+    if (!updated) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
     }
   }

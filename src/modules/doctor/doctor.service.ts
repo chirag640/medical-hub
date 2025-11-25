@@ -41,7 +41,11 @@ export class DoctorService {
     return this.mapToOutput(item);
   }
 
-  async update(id: string, dto: UpdateDoctorDto, lastModifiedBy?: string): Promise<DoctorOutputDto> {
+  async update(
+    id: string,
+    dto: UpdateDoctorDto,
+    lastModifiedBy?: string,
+  ): Promise<DoctorOutputDto> {
     const updateData: any = { ...dto };
     if (lastModifiedBy) {
       updateData.lastModifiedBy = lastModifiedBy;
@@ -51,6 +55,30 @@ export class DoctorService {
       throw new NotFoundException(`Doctor with ID ${id} not found`);
     }
     return this.mapToOutput(updated);
+  }
+
+  /**
+   * Get doctor profile by userId (for self-service)
+   */
+  async getProfileByUserId(userId: string): Promise<DoctorOutputDto> {
+    const doctor = await this.doctorRepository.findOne({ userId, isDeleted: { $ne: true } });
+    if (!doctor) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+    return this.mapToOutput(doctor);
+  }
+
+  /**
+   * Update doctor profile by userId (for self-service)
+   */
+  async updateProfileByUserId(userId: string, dto: UpdateDoctorDto): Promise<DoctorOutputDto> {
+    const doctor = await this.doctorRepository.findOne({ userId, isDeleted: { $ne: true } });
+    if (!doctor) {
+      throw new NotFoundException('Doctor profile not found');
+    }
+
+    // Update the profile
+    return this.update(doctor._id.toString(), dto, userId);
   }
 
   async remove(id: string, deletedBy?: string): Promise<void> {

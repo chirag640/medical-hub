@@ -49,7 +49,11 @@ export class DoctorController {
 
   @Patch(':id')
   @Roles(Role.ADMIN, Role.DOCTOR)
-  update(@Param('id') id: string, @Body() dto: UpdateDoctorDto, @Request() req: any): Promise<DoctorOutputDto> {
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateDoctorDto,
+    @Request() req: any,
+  ): Promise<DoctorOutputDto> {
     return this.doctorService.update(id, dto, req.user.userId);
   }
 
@@ -58,5 +62,18 @@ export class DoctorController {
   @Roles(Role.ADMIN)
   remove(@Param('id') id: string, @Request() req: any): Promise<void> {
     return this.doctorService.remove(id, req.user.userId);
+  }
+
+  // Doctor self-service endpoints
+  @Get('me/profile')
+  @Roles(Role.DOCTOR)
+  getMyProfile(@Request() req: any): Promise<DoctorOutputDto> {
+    return this.doctorService.getProfileByUserId(req.user.userId);
+  }
+
+  @Patch('me/profile')
+  @Roles(Role.DOCTOR)
+  updateMyProfile(@Body() dto: UpdateDoctorDto, @Request() req: any): Promise<DoctorOutputDto> {
+    return this.doctorService.updateProfileByUserId(req.user.userId, dto);
   }
 }

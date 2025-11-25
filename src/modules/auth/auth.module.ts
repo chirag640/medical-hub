@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -14,10 +14,12 @@ import { EmailVerificationService } from './email-verification.service';
 import { EmailVerificationController } from './email-verification.controller';
 import { EmailVerifiedGuard } from './guards/email-verified.guard';
 import { EmailModule } from '../../email/email.module';
+import { PatientModule } from '../patient/patient.module';
 
 @Module({
   imports: [
     EmailModule,
+    forwardRef(() => PatientModule),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

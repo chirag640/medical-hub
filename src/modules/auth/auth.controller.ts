@@ -9,12 +9,16 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { RefreshDto } from './dtos/refresh.dto';
+import { CreateUserDto } from './dtos/create-user.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './rbac/roles.guard';
+import { Roles } from './rbac/roles.decorator';
+import { Role } from './rbac/roles.enum';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -59,5 +63,15 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Request() req: any, @Body() dto: RefreshDto) {
     await this.authService.logout(req.user.userId, dto.refreshToken);
+  }
+
+  // Admin endpoint to create users with specific roles
+  @Post('admin/create-user')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  async createUser(@Body() dto: CreateUserDto, @Request() req: any) {
+    return this.authService.createUserWithRole(dto, req.user.userId);
   }
 }

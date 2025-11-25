@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   ConflictException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +14,7 @@ import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
 import { UserOutputDto } from '../user/dtos/user-output.dto';
 import { EmailVerificationService } from './email-verification.service';
+import { PatientService } from '../patient/patient.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +23,8 @@ export class AuthService {
     private readonly userRepository: UserRepository,
     private readonly configService: ConfigService,
     private readonly emailVerificationService: EmailVerificationService,
+    @Inject(forwardRef(() => PatientService))
+    private readonly patientService: PatientService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -32,12 +37,25 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    // Create user
+    // Create user with Patient role (default for self-registration)
+    // Only admins can assign other roles via admin endpoint
     const user = await this.userRepository.create({
       ...dto,
       password: hashedPassword,
-      roles: dto.roles || ['User'], // Default role
+      roles: ['Patient'], // Always Patient for self-registration
     });
+
+    // Automatically create patient profile for Patient role
+    try {
+      await this.patientService.createFromUser(user._id.toString(), {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
+    } catch (error) {
+      console.error('Failed to create patient profile:', error);
+      // Continue even if patient profile creation fails
+    }
 
     // Generate tokens
     const tokens = await this.generateTokens(user._id.toString(), user.roles);
@@ -182,6 +200,51 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+    };
+  }
+
+  /**
+   * Admin-only method to create users with specific roles
+   * Used for creating Doctor, Nurse, Admin, Receptionist accounts
+   */
+  async createUserWithRole(dto: RegisterDto & { roles: string[] }, adminUserId: string) {
+    // Check if user already exists
+    const existingUser = await this.userRepository.findByEmail(dto.email);
+    if (existingUser) {
+      throw new ConflictException('User with this email already exists');
+    }
+
+    // Validate roles - only allow staff roles
+    const allowedRoles = ['Doctor', 'Nurse', 'Admin', 'Receptionist', 'Patient'];
+    const invalidRoles = dto.roles.filter((role) => !allowedRoles.includes(role));
+    if (invalidRoles.length > 0) {
+      throw new ConflictException(`Invalid roles: ${invalidRoles.join(', ')}`);
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(dto.password, 10);
+
+    // Create user with specified roles
+    const user = await this.userRepository.create({
+      ...dto,
+      password: hashedPassword,
+      roles: dto.roles,
+    });
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user._id.toString(), user.roles);
+
+    // Save refresh token
+    await this.userRepository.updateRefreshToken(user._id.toString(), tokens.refreshToken);
+
+    // Send email verification
+    this.emailVerificationService.sendVerificationEmail(user._id.toString()).catch((error) => {
+      console.error('Failed to send verification email:', error);
+    });
+
+    return {
+      ...tokens,
+      user: this.mapToOutputDto(user),
     };
   }
 

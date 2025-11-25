@@ -14,6 +14,54 @@ export class PatientService {
     private readonly encryptionService: EncryptionService,
   ) {}
 
+  /**
+   * Create patient profile from User account (used during registration)
+   * This method is called automatically when a user registers with Patient role
+   */
+  async createFromUser(
+    userId: string,
+    userData: { email: string; firstName: string; lastName: string },
+  ): Promise<PatientOutputDto> {
+    // Check if patient profile already exists for this user
+    const existing = await this.patientRepository.findOne({ userId });
+    if (existing) {
+      return this.mapToOutput(existing);
+    }
+
+    // Generate unique patient ID
+    const patientId = this.generatePatientId();
+
+    // Create minimal patient profile
+    const patientData: any = {
+      userId,
+      patientId,
+      email: userData.email,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      gender: 'Other', // Will be updated by user later
+      dateOfBirth: new Date('2000-01-01'), // Placeholder - user should update
+      phone: '', // To be filled by user
+      bloodType: 'Unknown',
+      consentGiven: true, // User accepted terms during registration
+      consentDate: new Date(),
+    };
+
+    // Generate QR code
+    const qrPayload = {
+      id: patientId,
+      name: `${userData.firstName} ${userData.lastName}`,
+      phone: '',
+      bloodType: 'Unknown',
+    };
+
+    patientData.qrCodePayload = qrPayload;
+    const QRCode = require('qrcode');
+    patientData.qrCodeData = await QRCode.toDataURL(JSON.stringify(qrPayload));
+
+    const created = await this.patientRepository.create(patientData);
+    return this.mapToOutput(created);
+  }
+
   async create(dto: CreatePatientDto, createdBy?: string): Promise<PatientOutputDto> {
     // Validate consent
     if (!dto.consentGiven) {
@@ -190,7 +238,11 @@ export class PatientService {
     };
   }
 
-  async update(id: string, dto: UpdatePatientDto, lastModifiedBy?: string): Promise<PatientOutputDto> {
+  async update(
+    id: string,
+    dto: UpdatePatientDto,
+    lastModifiedBy?: string,
+  ): Promise<PatientOutputDto> {
     const updateData: any = { ...dto };
     if (lastModifiedBy) {
       updateData.lastModifiedBy = lastModifiedBy;
@@ -200,6 +252,41 @@ export class PatientService {
       throw new NotFoundException(`Patient with ID ${id} not found`);
     }
     return this.mapToOutput(updated);
+  }
+
+  /**
+   * Get patient profile by userId (for self-service)
+   */
+  async getProfileByUserId(userId: string): Promise<PatientOutputDto> {
+    const patient = await this.patientRepository.findOne({ userId, isDeleted: { $ne: true } });
+    if (!patient) {
+      throw new NotFoundException('Patient profile not found. Please complete your profile.');
+    }
+
+    // Decrypt sensitive fields
+    const sensitiveFields = [
+      'medicalHistory',
+      'allergies',
+      'currentMedication',
+      'aadhaarNumber',
+      'ssn',
+    ];
+    const decrypted = await this.encryptionService.decryptRecord(patient, sensitiveFields);
+
+    return this.mapToOutput(decrypted);
+  }
+
+  /**
+   * Update patient profile by userId (for self-service)
+   */
+  async updateProfileByUserId(userId: string, dto: UpdatePatientDto): Promise<PatientOutputDto> {
+    const patient = await this.patientRepository.findOne({ userId, isDeleted: { $ne: true } });
+    if (!patient) {
+      throw new NotFoundException('Patient profile not found');
+    }
+
+    // Update the profile
+    return this.update(patient._id.toString(), dto, userId);
   }
 
   async remove(id: string, deletedBy?: string): Promise<void> {

@@ -5,6 +5,16 @@ export type DoctorDocument = Doctor & MongooseDocument;
 
 @Schema({ timestamps: true })
 export class Doctor {
+  // Link to User account (required - doctors must have login accounts)
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    unique: true,
+    index: true,
+  })
+  userId!: MongooseSchema.Types.ObjectId;
+
   @Prop({
     type: String,
     required: true,
@@ -84,6 +94,40 @@ export class Doctor {
     required: false,
   })
   department!: any;
+
+  // Soft Delete Support
+  @Prop({
+    type: Boolean,
+    required: false,
+    default: false,
+    index: true,
+  })
+  isDeleted!: boolean;
+
+  @Prop({
+    type: Date,
+    required: false,
+  })
+  deletedAt?: Date;
+
+  @Prop({
+    type: String,
+    required: false,
+  })
+  deletedBy?: string; // User ID who deleted
+
+  // Audit Fields
+  @Prop({
+    type: String,
+    required: false,
+  })
+  createdBy?: string; // User ID who created
+
+  @Prop({
+    type: String,
+    required: false,
+  })
+  lastModifiedBy?: string; // User ID who last updated
 }
 
 export const DoctorSchema = SchemaFactory.createForClass(Doctor);

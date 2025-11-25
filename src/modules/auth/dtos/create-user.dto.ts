@@ -4,13 +4,17 @@ import {
   MinLength,
   MaxLength,
   IsArray,
-  IsOptional,
   Matches,
+  ArrayMinSize,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class RegisterDto {
-  @Transform(({ value }) => value?.trim()?.toLowerCase()) // Sanitize and normalize email
+/**
+ * DTO for admin to create users with specific roles
+ * Used for creating Doctor, Nurse, Admin, Receptionist accounts
+ */
+export class CreateUserDto {
+  @Transform(({ value }) => value?.trim()?.toLowerCase())
   @IsEmail()
   email!: string;
 
@@ -34,4 +38,9 @@ export class RegisterDto {
   @MinLength(2)
   @MaxLength(50)
   lastName!: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @ArrayMinSize(1, { message: 'At least one role must be specified' })
+  roles!: string[];
 }

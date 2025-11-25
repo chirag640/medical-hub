@@ -88,7 +88,11 @@ export class PatientController {
   @Patch(':id')
   @Roles(Role.ADMIN, Role.RECEPTIONIST, Role.DOCTOR, Role.NURSE)
   @ApiOperation({ summary: 'Update patient information' })
-  update(@Param('id') id: string, @Body() dto: UpdatePatientDto, @Request() req: any): Promise<PatientOutputDto> {
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdatePatientDto,
+    @Request() req: any,
+  ): Promise<PatientOutputDto> {
     return this.patientService.update(id, dto, req.user.userId);
   }
 
@@ -98,5 +102,20 @@ export class PatientController {
   @ApiOperation({ summary: 'Soft delete patient record' })
   remove(@Param('id') id: string, @Request() req: any): Promise<void> {
     return this.patientService.remove(id, req.user.userId);
+  }
+
+  // Patient self-service endpoints
+  @Get('me/profile')
+  @Roles(Role.PATIENT)
+  @ApiOperation({ summary: 'Get my patient profile (for logged-in patients)' })
+  getMyProfile(@Request() req: any): Promise<PatientOutputDto> {
+    return this.patientService.getProfileByUserId(req.user.userId);
+  }
+
+  @Patch('me/profile')
+  @Roles(Role.PATIENT)
+  @ApiOperation({ summary: 'Update my patient profile (for logged-in patients)' })
+  updateMyProfile(@Body() dto: UpdatePatientDto, @Request() req: any): Promise<PatientOutputDto> {
+    return this.patientService.updateProfileByUserId(req.user.userId, dto);
   }
 }

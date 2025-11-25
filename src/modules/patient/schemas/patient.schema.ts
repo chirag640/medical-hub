@@ -5,6 +5,17 @@ export type PatientDocument = Patient & MongooseDocument;
 
 @Schema({ timestamps: true })
 export class Patient {
+  // Link to User account (optional - some patients may not have login accounts)
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'User',
+    required: false,
+    unique: true,
+    sparse: true, // Allows null values while maintaining uniqueness
+    index: true,
+  })
+  userId?: MongooseSchema.Types.ObjectId;
+
   // Universal Patient ID (auto-generated)
   @Prop({
     type: String,
