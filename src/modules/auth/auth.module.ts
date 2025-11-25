@@ -1,0 +1,54 @@
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthService } from './auth.service';
+import { AuthController } from './auth.controller';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { User, UserSchema } from '../user/user.schema';
+import { UserRepository } from '../user/user.repository';
+import { PasswordResetService } from './password-reset.service';
+import { PasswordResetController } from './password-reset.controller';
+import { EmailVerificationService } from './email-verification.service';
+import { EmailVerificationController } from './email-verification.controller';
+import { EmailVerifiedGuard } from './guards/email-verified.guard';
+import { EmailModule } from '../../email/email.module';
+
+@Module({
+  imports: [
+    EmailModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const secret = config.get<string>('JWT_SECRET');
+        if (!secret) {
+          throw new Error(
+            'JWT_SECRET is not defined in environment variables. ' +
+              'Please set JWT_SECRET in your .env file to a strong secret (minimum 32 characters).',
+          );
+        }
+        return {
+          secret,
+          signOptions: {
+            expiresIn: (config.get<string>('JWT_ACCESS_EXPIRY') || '15m') as any,
+          },
+        };
+      },
+    }),
+    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+  ],
+  controllers: [AuthController, PasswordResetController, EmailVerificationController],
+  providers: [
+    AuthService,
+    PasswordResetService,
+    EmailVerificationService,
+    EmailVerifiedGuard,
+    JwtStrategy,
+    UserRepository,
+  ],
+  exports: [AuthService, JwtStrategy, PassportModule, EmailVerifiedGuard],
+})
+export class AuthModule {}

@@ -1,0 +1,84 @@
+import { Injectable, BadRequestException } from '@nestjs/common';
+import { UserRepository } from '../user/user.repository';
+import { EmailService } from '../../email/email.service';
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcryptjs';
+
+@Injectable()
+export class EmailVerificationService {
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly emailService: EmailService,
+  ) {}
+
+  /**
+   * Send verification email to user
+   */
+  async sendVerificationEmail(userId: string): Promise<void> {
+    const user = await this.userRepository.findById(userId);
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    if (user.emailVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+
+    // Generate secure random token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpiry = new Date(Date.now() + 86400000); // 24 hours
+
+    // Store hashed token in database
+    const hashedToken = await bcrypt.hash(verificationToken, 10);
+
+    await this.userRepository.update(userId, {
+      emailVerificationToken: hashedToken,
+      emailVerificationExpiry: verificationExpiry,
+    });
+
+    // Send email with verification link containing the unhashed token
+    await this.emailService.sendEmailVerification({
+      to: user.email,
+      name: (user as any).name || (user as any).firstName || user.email,
+      verificationToken,
+    });
+  }
+
+  /**
+   * Verify email using the token
+   */
+  async verifyEmail(token: string): Promise<{ message: string }> {
+    // Note: Since tokens are hashed, we need to check candidates
+    // In production, consider using indexed token lookup with encryption instead
+
+    let matchedUser = null;
+
+    // Find potential user (this query is intentionally broad for token matching)
+    // TODO: Optimize with a token lookup service for production scale
+    const candidate = await this.userRepository.findOne({
+      emailVerificationToken: { $ne: null },
+      emailVerificationExpiry: { $gte: new Date() },
+    });
+
+    if (candidate) {
+      const isValidToken = await bcrypt.compare(token, candidate.emailVerificationToken!);
+      if (isValidToken) {
+        matchedUser = candidate;
+      }
+    }
+
+    if (!matchedUser) {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+
+    // Mark email as verified and clear token
+    await this.userRepository.update(matchedUser._id.toString(), {
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpiry: null,
+    });
+
+    return { message: 'Email verified successfully' };
+  }
+}

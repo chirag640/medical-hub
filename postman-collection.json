@@ -1,0 +1,357 @@
+{
+  "info": {
+    "name": "medical-hub API",
+    "description": "Complete medical records management system with FLAC, RBAC, OAuth, and production features",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "accessToken",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    }  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\"email\\": \\"user@example.com\\",\\n  \\"password\\": \\"SecurePass123!\\"\\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\\n  \\"email\\": \\"user@example.com\\",\\n  \\"password\\": \\"SecurePass123!\\"\\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "patients",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/patients"
+          }
+        },
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/patients"
+          }
+        },
+        {
+          "name": "Get By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/patients/:id"
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/patients/:id"
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/patients/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "doctors",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/doctors"
+          }
+        },
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/doctors"
+          }
+        },
+        {
+          "name": "Get By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/doctors/:id"
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/doctors/:id"
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/doctors/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "appointments",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/appointments"
+          }
+        },
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/appointments"
+          }
+        },
+        {
+          "name": "Get By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/appointments/:id"
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/appointments/:id"
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/appointments/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "medicalrecords",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/medicalrecords"
+          }
+        },
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/medicalrecords"
+          }
+        },
+        {
+          "name": "Get By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/medicalrecords/:id"
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/medicalrecords/:id"
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/medicalrecords/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "prescriptions",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/prescriptions"
+          }
+        },
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/prescriptions"
+          }
+        },
+        {
+          "name": "Get By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/prescriptions/:id"
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/prescriptions/:id"
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/prescriptions/:id"
+          }
+        }
+      ]
+    },
+    {
+      "name": "departments",
+      "item": [
+        {
+          "name": "Create",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/departments"
+          }
+        },
+        {
+          "name": "Get All",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/departments"
+          }
+        },
+        {
+          "name": "Get By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/departments/:id"
+          }
+        },
+        {
+          "name": "Update",
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/departments/:id"
+          }
+        },
+        {
+          "name": "Delete",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/departments/:id"
+          }
+        }
+      ]
+    }  ]
+}

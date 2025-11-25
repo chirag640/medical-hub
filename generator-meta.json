@@ -1,0 +1,64 @@
+{
+  "generator": {
+    "name": "FoundationWizard",
+    "version": "1.0.0",
+    "timestamp": "2025-11-25T16:30:27.746Z"
+  },
+  "project": {
+    "name": "medical-hub",
+    "description": "Complete medical records management system with FLAC, RBAC, OAuth, and production features",
+    "orm": "mongoose"
+  },
+  "dependencies": {
+    "nodejs": "20",
+    "nestjs": "11.0.0"
+  },
+  "features": {
+    "authentication": true,
+    "jwt": true,
+    "rbac": true,
+    "oauth": false,
+    "swagger": true,
+    "logging": true,
+    "caching": true,
+    "rateLimit": true,
+    "health": true,
+    "compression": true,
+    "helmet": true,
+    "docker": true,
+    "cicd": true
+  },
+  "models": [
+    {
+      "name": "Patient",
+      "fields": 13,
+      "timestamps": true
+    },
+    {
+      "name": "Doctor",
+      "fields": 11,
+      "timestamps": true
+    },
+    {
+      "name": "Appointment",
+      "fields": 11,
+      "timestamps": true
+    },
+    {
+      "name": "MedicalRecord",
+      "fields": 9,
+      "timestamps": true
+    },
+    {
+      "name": "Prescription",
+      "fields": 10,
+      "timestamps": true
+    },
+    {
+      "name": "Department",
+      "fields": 6,
+      "timestamps": true
+    }
+  ],
+  "relationships": 8
+}

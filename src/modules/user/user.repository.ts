@@ -1,0 +1,59 @@
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User, UserDocument } from './user.schema';
+import { sanitizeString } from '../../common/sanitize.util';
+
+@Injectable()
+export class UserRepository {
+  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
+
+  async create(data: Partial<User>): Promise<UserDocument> {
+    const user = new this.userModel(data);
+    return user.save();
+  }
+
+  async findAll(skip: number = 0, limit: number = 10): Promise<UserDocument[]> {
+    return this.userModel
+      .find()
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .select('-password')
+      .exec();
+  }
+
+  async findById(id: string): Promise<UserDocument | null> {
+    return this.userModel.findById(id).select('-password').exec();
+  }
+
+  async findByEmail(email: string): Promise<UserDocument | null> {
+    // Prevent NoSQL injection: sanitize input to ensure it's a primitive string
+    const sanitizedEmail = sanitizeString(email);
+    if (!sanitizedEmail) {
+      return null;
+    }
+    return this.userModel.findOne({ email: sanitizedEmail }).exec();
+  }
+
+  async update(id: string, data: Partial<User>): Promise<UserDocument | null> {
+    return this.userModel.findByIdAndUpdate(id, data, { new: true }).select('-password').exec();
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await this.userModel.findByIdAndDelete(id).exec();
+    return !!result;
+  }
+
+  async count(): Promise<number> {
+    return this.userModel.countDocuments().exec();
+  }
+
+  async findOne(query: any): Promise<UserDocument | null> {
+    return this.userModel.findOne(query).exec();
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string | null): Promise<void> {
+    await this.userModel.findByIdAndUpdate(userId, { refreshToken }).exec();
+  }
+}
