@@ -58,14 +58,16 @@ export class AppointmentService {
   }
 
   async remove(id: string, deletedBy?: string): Promise<void> {
-    // Soft delete with audit trail
+    // Soft delete by marking as cancelled (appointments are not hard-deleted)
     const updated = await this.appointmentRepository.update(id, {
-      isDeleted: true,
-      deletedAt: new Date(),
-      deletedBy,
+      status: 'Cancelled',
     });
     if (!updated) {
       throw new NotFoundException(`Appointment with ID ${id} not found`);
+    }
+    // Log deletion for audit trail
+    if (deletedBy) {
+      console.log(`Appointment ${id} cancelled by user ${deletedBy}`);
     }
   }
 

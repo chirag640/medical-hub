@@ -67,7 +67,8 @@ describe('DoctorController', () => {
 
       service.create.mockResolvedValue(mockDoctor as any);
 
-      const result = await controller.create(createDto as any);
+      const mockReq = { user: { userId: '507f1f77bcf86cd799439011' } };
+      const result = await controller.create(createDto as any, mockReq);
 
       expect(result).toEqual(mockDoctor);
       expect(service.create).toHaveBeenCalledWith(createDto);
@@ -113,7 +114,8 @@ describe('DoctorController', () => {
       const updatedMock = { ...mockDoctor, ...updateDto };
       service.update.mockResolvedValue(updatedMock as any);
 
-      const result = await controller.update('507f1f77bcf86cd799439011', updateDto as any);
+      const mockReq = { user: { userId: '507f1f77bcf86cd799439011' } };
+      const result = await controller.update('507f1f77bcf86cd799439011', updateDto as any, mockReq);
 
       expect(result).toEqual(updatedMock);
       expect(service.update).toHaveBeenCalledWith('507f1f77bcf86cd799439011', updateDto);
@@ -124,7 +126,8 @@ describe('DoctorController', () => {
     it('should remove a doctor', async () => {
       service.remove.mockResolvedValue(undefined);
 
-      await controller.remove('507f1f77bcf86cd799439011');
+      const mockReq = { user: { userId: '507f1f77bcf86cd799439011' } };
+      await controller.remove('507f1f77bcf86cd799439011', mockReq);
 
       expect(service.remove).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
     });

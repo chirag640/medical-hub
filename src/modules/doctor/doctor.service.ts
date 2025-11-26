@@ -78,7 +78,7 @@ export class DoctorService {
     }
 
     // Update the profile
-    return this.update(doctor._id.toString(), dto, userId);
+    return this.update((doctor as any)._id.toString(), dto, userId);
   }
 
   async remove(id: string, deletedBy?: string): Promise<void> {

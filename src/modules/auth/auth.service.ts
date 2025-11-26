@@ -231,6 +231,11 @@ export class AuthService {
       roles: dto.roles,
     });
 
+    // Log admin action for audit trail
+    console.log(
+      `User created by admin ${adminUserId}: ${user.email} with roles: ${dto.roles.join(', ')}`,
+    );
+
     // Generate tokens
     const tokens = await this.generateTokens(user._id.toString(), user.roles);
 

@@ -286,7 +286,7 @@ export class PatientService {
     }
 
     // Update the profile
-    return this.update(patient._id.toString(), dto, userId);
+    return this.update((patient as any)._id.toString(), dto, userId);
   }
 
   async remove(id: string, deletedBy?: string): Promise<void> {
